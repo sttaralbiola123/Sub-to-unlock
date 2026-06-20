@@ -317,6 +317,7 @@ function renderUnlockPage(config) {
 
       if (secondsLeft <= 0) {
         clearInterval(timer);
+        numEl.textContent = '';
         document.getElementById('dialStage').classList.add('unlocked');
         document.getElementById('countdownLabel').textContent = 'unlocked';
         document.getElementById('stageText').textContent = "You're in";
