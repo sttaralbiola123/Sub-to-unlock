@@ -1,0 +1,17 @@
+{
+  "name": "subscribe-unlock",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "@supabase/supabase-js": "^2.45.4",
+    "nanoid": "^3.3.7",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

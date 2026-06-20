@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gatekeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0d0f;
+    --panel: #18161a;
+    --panel-2: #221f24;
+    --red: #e0263d;
+    --paper: #f3ede4;
+    --paper-dim: #b8b0a6;
+    --line: #332f35;
+    --ok: #36c47a;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--ink); color: var(--paper); font-family: var(--font-body); min-height: 100vh; }
+  body { display: flex; flex-direction: column; align-items: center; }
+  a { color: inherit; }
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    z-index: 0;
+  }
+  .adslot {
+    width: 100%; max-width: 728px; min-height: 90px; margin: 18px auto;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px dashed var(--line); color: var(--paper-dim);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 4px; background: var(--panel); z-index: 1;
+  }
+  .wrap { width: 100%; max-width: 560px; padding: 56px 24px 80px; position: relative; z-index: 1; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); margin: 0 0 14px; }
+  h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(34px, 6vw, 48px); line-height: 1.04; margin: 0 0 12px; letter-spacing: -0.01em; }
+  .sub { color: var(--paper-dim); font-size: 15px; line-height: 1.5; margin: 0 0 40px; max-width: 46ch; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 28px; }
+  fieldset { border: none; margin: 0 0 28px; padding: 0; }
+  legend { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper-dim); margin-bottom: 12px; padding: 0; }
+  .choice-row { display: flex; gap: 10px; }
+  .choice { flex: 1; position: relative; }
+  .choice input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .choice label { display: block; border: 1px solid var(--line); border-radius: 4px; padding: 14px 12px; text-align: center; font-size: 14px; font-weight: 500; color: var(--paper-dim); transition: border-color .15s, color .15s, background .15s; cursor: pointer; }
+  .choice input:checked + label { border-color: var(--red); color: var(--paper); background: rgba(224,38,61,.08); }
+  .field { margin-bottom: 20px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--paper); }
+  .field .hint { font-size: 12px; color: var(--paper-dim); margin-top: 6px; }
+  input[type="url"], input[type="number"], input[type="text"] {
+    width: 100%; background: var(--ink); border: 1px solid var(--line); border-radius: 4px;
+    padding: 12px 14px; color: var(--paper); font-family: var(--font-body); font-size: 14px; outline: none; transition: border-color .15s;
+  }
+  input:focus-visible { border-color: var(--red); }
+  .submit { width: 100%; background: var(--red); color: var(--paper); border: none; border-radius: 4px; padding: 15px; font-size: 14px; font-weight: 600; letter-spacing: .01em; cursor: pointer; transition: background .15s; font-family: var(--font-body); }
+  .submit:hover { background: #c91f33; }
+  .submit:disabled { background: #8c1a28; cursor: not-allowed; }
+  .result { display: none; margin-top: 24px; padding: 20px; border: 1px solid var(--ok); border-radius: 6px; background: rgba(54,196,122,.06); }
+  .result.show { display: block; }
+  .result .label { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ok); margin-bottom: 10px; }
+  .result-link-row { display: flex; gap: 8px; }
+  .result-link-row input { flex: 1; background: var(--ink); border: 1px solid var(--line); color: var(--paper); border-radius: 4px; padding: 10px 12px; font-family: var(--font-mono); font-size: 13px; }
+  .copy-btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--paper); border-radius: 4px; padding: 0 16px; font-size: 13px; cursor: pointer; font-family: var(--font-body); }
+  .copy-btn:hover { border-color: var(--paper-dim); }
+  .error { display: none; margin-top: 16px; padding: 12px 14px; border: 1px solid var(--red); background: rgba(224,38,61,.08); border-radius: 4px; font-size: 13px; color: var(--paper); }
+  .error.show { display: block; }
+  footer { margin-top: 40px; text-align: center; font-size: 12px; color: var(--paper-dim); }
+
+  .uwrap { width: 100%; max-width: 480px; padding: 56px 24px 80px; position: relative; z-index: 1; text-align: center; }
+  .dial-stage { width: 200px; height: 200px; margin: 0 auto 36px; position: relative; }
+  .dial-ring { width: 100%; height: 100%; border-radius: 50%; transform: rotate(-90deg); }
+  .dial-track { fill: none; stroke: var(--line); stroke-width: 3; }
+  .dial-progress { fill: none; stroke: var(--red); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 565.5; stroke-dashoffset: 565.5; transition: stroke-dashoffset 1s linear; }
+  .dial-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .lock-icon { width: 34px; height: 34px; margin-bottom: 10px; }
+  .lock-body { fill: var(--panel-2); stroke: var(--paper-dim); stroke-width: 1.5; }
+  .lock-shackle { fill: none; stroke: var(--paper-dim); stroke-width: 2.5; transform-origin: 17px 16px; transition: transform .5s cubic-bezier(.34,1.56,.64,1), stroke .3s; }
+  .unlocked .lock-shackle { transform: translateY(-3px) rotate(-18deg); stroke: var(--ok); }
+  .unlocked .lock-body { stroke: var(--ok); }
+  .countdown-num { font-family: var(--font-mono); font-size: 28px; font-weight: 500; color: var(--paper); letter-spacing: -.02em; }
+  .countdown-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: .12em; color: var(--paper-dim); margin-top: 2px; }
+  .stage-text { font-size: 13px; color: var(--paper-dim); margin-bottom: 24px; min-height: 18px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; max-width: 320px; padding: 15px; border-radius: 4px; font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; border: none; transition: background .15s, opacity .15s, transform .1s; }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--red); color: var(--paper); }
+  .btn-primary:hover { background: #c91f33; }
+  .btn-go { background: var(--ok); color: #0e1a14; }
+  .btn-go:hover { background: #2bab69; }
+  .btn-disabled { background: var(--panel-2); color: var(--paper-dim); cursor: not-allowed; }
+  .btn-row { display: flex; justify-content: center; }
+  .loading-msg { font-size: 14px; color: var(--paper-dim); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   ONE FILE = setup page (/) + unlock page (/r/CODE)
+   The server (server.js) decides what `mode` and `data` to inject.
+   It does this by writing a small <script> block right before
+   this one — see INJECTED_CONFIG below.
+   ============================================================ */
+
+// server.js will replace this object before sending the page.
+// mode: "setup" or "unlock" or "notfound"
+// data: link config when mode is "unlock"
+const INJECTED_CONFIG = window.__GATEKEEPER__ || { mode: "setup" };
+
+const app = document.getElementById('app');
+
+function renderSetupPage() {
+  app.innerHTML = `
+    <div class="adslot">Ad space — 728×90</div>
+    <div class="wrap">
+      <p class="eyebrow">Gatekeeper</p>
+      <h1>Make a link people<br>have to earn.</h1>
+      <p class="sub">Set what you want them to do, set where they end up, and we'll hand you a short link that holds the door shut until they've done it.</p>
+
+      <div class="panel">
+        <form id="createForm">
+          <fieldset>
+            <legend>What do they need to do</legend>
+            <div class="choice-row">
+              <div class="choice">
+                <input type="radio" name="action_type" id="opt-subscribe" value="subscribe" checked>
+                <label for="opt-subscribe">Subscribe to my channel</label>
+              </div>
+              <div class="choice">
+                <input type="radio" name="action_type" id="opt-like" value="like">
+                <label for="opt-like">Like a video</label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label id="ytLabel" for="youtube_link">YouTube channel link</label>
+            <input type="url" id="youtube_link" placeholder="https://youtube.com/@yourchannel" required>
+            <p class="hint" id="ytHint">The page they'll be sent to in order to subscribe.</p>
+          </div>
+
+          <div class="field">
+            <label for="destination_link">Where they land after unlocking</label>
+            <input type="url" id="destination_link" placeholder="https://example.com/the-actual-thing" required>
+          </div>
+
+          <div class="field">
+            <label for="wait_seconds">Wait time before they can continue</label>
+            <input type="number" id="wait_seconds" value="15" min="3" max="120">
+            <p class="hint">Seconds. Default is 15.</p>
+          </div>
+
+          <button type="submit" class="submit" id="submitBtn">Generate link</button>
+        </form>
+
+        <div class="error" id="errorBox"></div>
+
+        <div class="result" id="resultBox">
+          <p class="label">Your link is live</p>
+          <div class="result-link-row">
+            <input type="text" id="resultLink" readonly>
+            <button class="copy-btn" id="copyBtn" type="button">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <footer>Each link is independent — make as many as you need.</footer>
+    </div>
+    <div class="adslot">Ad space — 728×90</div>
+  `;
+
+  const ytLabel = document.getElementById('ytLabel');
+  const ytInput = document.getElementById('youtube_link');
+  const ytHint = document.getElementById('ytHint');
+
+  function syncLabels() {
+    const val = document.querySelector('input[name="action_type"]:checked').value;
+    if (val === 'like') {
+      ytLabel.textContent = 'YouTube video link';
+      ytInput.placeholder = 'https://youtube.com/watch?v=...';
+      ytHint.textContent = "The video they'll be sent to in order to like it.";
+    } else {
+      ytLabel.textContent = 'YouTube channel link';
+      ytInput.placeholder = 'https://youtube.com/@yourchannel';
+      ytHint.textContent = "The page they'll be sent to in order to subscribe.";
+    }
+  }
+  document.querySelectorAll('input[name="action_type"]').forEach(r => r.addEventListener('change', syncLabels));
+
+  const form = document.getElementById('createForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const errorBox = document.getElementById('errorBox');
+  const resultBox = document.getElementById('resultBox');
+  const resultLink = document.getElementById('resultLink');
+  const copyBtn = document.getElementById('copyBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.classList.remove('show');
+    resultBox.classList.remove('show');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Generating…';
+
+    const payload = {
+      action_type: document.querySelector('input[name="action_type"]:checked').value,
+      youtube_link: ytInput.value.trim(),
+      destination_link: document.getElementById('destination_link').value.trim(),
+      wait_seconds: document.getElementById('wait_seconds').value
+    };
+
+    try {
+      const res = await fetch('/api/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+
+      resultLink.value = data.url;
+      resultBox.classList.add('show');
+      form.reset();
+      syncLabels();
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.classList.add('show');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Generate link';
+    }
+  });
+
+  copyBtn.addEventListener('click', () => {
+    resultLink.select();
+    navigator.clipboard.writeText(resultLink.value).then(() => {
+      copyBtn.textContent = 'Copied';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    });
+  });
+}
+
+function renderNotFound() {
+  app.innerHTML = `
+    <div class="uwrap">
+      <p class="eyebrow">Locked content</p>
+      <h1>Link not found</h1>
+      <p class="sub">This link may have been removed, or the address is incorrect.</p>
+    </div>
+  `;
+}
+
+function renderUnlockPage(config) {
+  const code = config.code;
+  const totalSeconds = config.wait_seconds || 15;
+  let secondsLeft = totalSeconds;
+  let started = false;
+  const CIRC = 2 * Math.PI * 90;
+
+  const actionWord = config.action_type === 'like' ? 'Like the video' : 'Subscribe';
+  const actionWordPast = config.action_type === 'like' ? 'liked' : 'subscribed';
+  const actionVerbing = config.action_type === 'like' ? 'Liking' : 'Subscribing';
+
+  app.innerHTML = `
+    <div class="adslot">Ad space — 728×90</div>
+    <div class="uwrap">
+      <p class="eyebrow">Locked content</p>
+      <h1>${actionWord} to unlock</h1>
+      <p class="sub">This link opens once you've ${actionWordPast} on YouTube. Takes about ${totalSeconds} seconds.</p>
+
+      <div class="dial-stage" id="dialStage">
+        <svg class="dial-ring" viewBox="0 0 200 200">
+          <circle class="dial-track" cx="100" cy="100" r="90"></circle>
+          <circle class="dial-progress" id="dialProgress" cx="100" cy="100" r="90" stroke-dasharray="${CIRC}" stroke-dashoffset="${CIRC}"></circle>
+        </svg>
+        <div class="dial-center">
+          <svg class="lock-icon" viewBox="0 0 34 34">
+            <path class="lock-shackle" d="M10 15 V11 a7 7 0 0 1 14 0 V15"></path>
+            <rect class="lock-body" x="7" y="15" width="20" height="15" rx="2.5"></rect>
+          </svg>
+          <div class="countdown-num" id="countdownNum">${totalSeconds}</div>
+          <div class="countdown-label" id="countdownLabel">seconds</div>
+        </div>
+      </div>
+
+      <p class="stage-text" id="stageText">Tap below to get started</p>
+
+      <div class="btn-row" id="btnRow">
+        <button class="btn btn-primary" id="actionBtn">${actionWord} on YouTube</button>
+      </div>
+    </div>
+    <div class="adslot">Ad space — 728×90</div>
+  `;
+
+  document.getElementById('actionBtn').addEventListener('click', () => {
+    if (started) return;
+    started = true;
+    window.open(config.youtube_link, '_blank', 'noopener');
+
+    document.getElementById('stageText').textContent = 'Verifying — keep this tab open';
+    document.getElementById('btnRow').innerHTML = `<button class="btn btn-disabled" disabled>${actionVerbing}…</button>`;
+
+    const progress = document.getElementById('dialProgress');
+    const numEl = document.getElementById('countdownNum');
+
+    const timer = setInterval(() => {
+      secondsLeft -= 1;
+      const pct = (totalSeconds - secondsLeft) / totalSeconds;
+      progress.style.strokeDashoffset = CIRC * (1 - pct);
+      numEl.textContent = Math.max(secondsLeft, 0);
+
+      if (secondsLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById('dialStage').classList.add('unlocked');
+        document.getElementById('countdownLabel').textContent = 'unlocked';
+        document.getElementById('stageText').textContent = "You're in";
+        document.getElementById('btnRow').innerHTML = `<button class="btn btn-go" id="continueBtn">Continue →</button>`;
+        document.getElementById('continueBtn').addEventListener('click', async () => {
+          const btn = document.getElementById('continueBtn');
+          btn.disabled = true;
+          btn.textContent = 'Redirecting…';
+          try {
+            const res = await fetch(`/api/links/${code}/complete`, { method: 'POST' });
+            const data = await res.json();
+            if (data.destination) window.location.href = data.destination;
+          } catch (e) {
+            btn.disabled = false;
+            btn.textContent = 'Continue →';
+          }
+        });
+      }
+    }, 1000);
+  });
+}
+
+// --- Entry point ---
+if (INJECTED_CONFIG.mode === 'unlock') {
+  renderUnlockPage(INJECTED_CONFIG.data);
+} else if (INJECTED_CONFIG.mode === 'notfound') {
+  renderNotFound();
+} else {
+  renderSetupPage();
+}
+</script>
+</body>
+</html>
