@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gatekeeper</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2730608304608055" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -116,9 +117,22 @@ const INJECTED_CONFIG = window.__GATEKEEPER__ || { mode: "setup" };
 
 const app = document.getElementById('app');
 
+function activateAds() {
+  document.querySelectorAll('.adsbygoogle').forEach(() => {
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+  });
+}
+
 function renderSetupPage() {
   app.innerHTML = `
-    <div class="adslot">Ad space — 728×90</div>
+    <div class="adslot">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2730608304608055"
+           data-ad-slot="2683492329"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
     <div class="wrap">
       <p class="eyebrow">Gatekeeper</p>
       <h1>Make a link people<br>have to earn.</h1>
@@ -173,7 +187,14 @@ function renderSetupPage() {
 
       <footer>Each link is independent — make as many as you need.</footer>
     </div>
-    <div class="adslot">Ad space — 728×90</div>
+    <div class="adslot">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2730608304608055"
+           data-ad-slot="2683492329"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
   `;
 
   const ytLabel = document.getElementById('ytLabel');
@@ -244,6 +265,8 @@ function renderSetupPage() {
       setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
     });
   });
+
+  activateAds();
 }
 
 function renderNotFound() {
@@ -268,7 +291,14 @@ function renderUnlockPage(config) {
   const actionVerbing = config.action_type === 'like' ? 'Liking' : 'Subscribing';
 
   app.innerHTML = `
-    <div class="adslot">Ad space — 728×90</div>
+    <div class="adslot">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2730608304608055"
+           data-ad-slot="2683492329"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
     <div class="uwrap">
       <p class="eyebrow">Locked content</p>
       <h1>${actionWord} to unlock</h1>
@@ -295,7 +325,14 @@ function renderUnlockPage(config) {
         <button class="btn btn-primary" id="actionBtn">${actionWord} on YouTube</button>
       </div>
     </div>
-    <div class="adslot">Ad space — 728×90</div>
+    <div class="adslot">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-2730608304608055"
+           data-ad-slot="2683492329"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+    </div>
   `;
 
   document.getElementById('actionBtn').addEventListener('click', () => {
@@ -338,6 +375,8 @@ function renderUnlockPage(config) {
       }
     }, 1000);
   });
+
+  activateAds();
 }
 
 // --- Entry point ---
